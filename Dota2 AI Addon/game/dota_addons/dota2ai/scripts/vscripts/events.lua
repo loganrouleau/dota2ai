@@ -21,23 +21,9 @@ function Dota2AI:OnGameRulesStateChange()
     print( "OnGameRulesStateChange: Game In Progress" )
 	BotPick()
 	
-	
-	
-	--Throwing in more bots to complete the teams. Activate the built-in AI if you like. 
-	--Via the parameters, you can set the hero, initial lane, skill level, and team for a bot. The game does not
-	--have behaviours for all different heroes though
-    
-    --Tutorial:AddBot( sHeroSelection[2], "top", "easy", true );
-    --Tutorial:AddBot( sHeroSelection[3], "top", "easy", true );
-    --Tutorial:AddBot( sHeroSelection[4], "bot", "easy", true );
-    --Tutorial:AddBot( sHeroSelection[5], "bot", "easy", true );
-    
-    
-    --Tutorial:AddBot( sHeroSelection[6], "top", "easy", false );
-    --Tutorial:AddBot( sHeroSelection[7], "top", "easy", false );
-    Tutorial:AddBot( Dota2AI.sHeroSelection[8], "mid", "easy", false );
-    --Tutorial:AddBot( sHeroSelection[9], "bot", "easy", false );
-    --Tutorial:AddBot( sHeroSelection[10], "bot", "easy", false );    
+    if Dota2AI.useEnemyHero then
+      Tutorial:AddBot( Dota2AI.enemyHero, "mid", Dota2AI.enemyHeroDifficulty, false );  
+    end  
   end    
 end
 
