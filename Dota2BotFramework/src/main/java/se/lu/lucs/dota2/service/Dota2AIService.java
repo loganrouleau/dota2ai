@@ -31,187 +31,149 @@ import se.lu.lucs.dota2.framework.game.World;
  *
  */
 public class Dota2AIService extends NanoHTTPD {
+	private final static ObjectMapper MAPPER = new ObjectMapper();
+	private static final Logger LOGGER = Logger.getLogger(Dota2AIService.class.getName());
+	private final static String ACCEPT_FIELD = "accept";
+	private final static String APPLICATION_JSON = "application/json";
+	private final static String CONTENT_TYPE = "content-type";
+	private final Set<FrameListener> listeners;
+	private final Bot bot;
+	static {
+		MAPPER.configure(Feature.AUTO_CLOSE_SOURCE, false);
+	}
 
-    private final static ObjectMapper MAPPER = new ObjectMapper();
+	public Dota2AIService(Bot bot) throws IOException {
+		super(8080);
+		this.bot = bot;
+		listeners = new HashSet<>();
+		LOGGER.fine("Dota2AIService created");
+	}
 
-    private static final Logger LOGGER = Logger.getLogger( Dota2AIService.class.getName() );
+	public void add(FrameListener l) {
+		listeners.add(l);
+	}
 
-    private final static String ACCEPT_FIELD = "accept";
+	/**
+	 * Ensures that the "accept" header is either set to JSON or empty
+	 *
+	 * @param session
+	 * @return
+	 */
+	private Response assureAcceptJSON(IHTTPSession session) {
+		final Map<String, String> headers = session.getHeaders();
+		if (!APPLICATION_JSON.equals(headers.get(ACCEPT_FIELD))) {
+			return newFixedLengthResponse(Response.Status.NOT_ACCEPTABLE, MIME_PLAINTEXT, "set accept to application/json or remove it");
+		} else {
+			return null;
+		}
+	}
 
-    private final static String APPLICATION_JSON = "application/json";
+	/**
+	 * Helper method to serialize a POJO into JSON
+	 *
+	 * @param o
+	 * @return
+	 * @throws JsonProcessingException
+	 */
+	private Response buildJSONResponse(Object o) throws JsonProcessingException {
+		return newFixedLengthResponse(MAPPER.writeValueAsString(o));
 
-    private final static String CONTENT_TYPE = "content-type";
+	}
 
-    static {
-        MAPPER.configure( Feature.AUTO_CLOSE_SOURCE, false );
-    }
+	private void chat(IHTTPSession session) throws JsonParseException, JsonMappingException, IOException {
+		final ChatEvent e = MAPPER.readValue(session.getInputStream(), ChatEvent.class);
+		bot.onChat(e);
+	}
 
-    public static void main( String[] args ) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IOException {
-        if (args.length < 1) {
-            System.err.println( "First argument must be FQN of your bot class" );
-            return;
-        }
+	private Response levelup(IHTTPSession session) throws JsonProcessingException {
+		final Response res = assureAcceptJSON(session);
+		if (res != null) {
+			return res;
+		}
+		final LevelUp l = bot.levelUp();
+		return buildJSONResponse(l);
+	}
 
-        final Class<Bot> botClass = (Class<Bot>) Class.forName( args[0] );
-        final Dota2AIService service = new Dota2AIService( botClass.newInstance() );
-        try {
-            final Class<?> visualizerClass = Class.forName( "se.lu.lucs.visualizer.MatchVisualizer" );
-            service.add( (FrameListener) visualizerClass.newInstance() );
-        }
-        catch (final ClassNotFoundException e) {
-            //NOP
-        }
-        service.start( NanoHTTPD.SOCKET_READ_TIMEOUT, false );
-    }
+	/**
+	 * Ensures that the supplied data has the "content-type" set to JSON
+	 *
+	 * @param session
+	 * @return
+	 */
+	private Response requireJSON(IHTTPSession session) {
+		final Map<String, String> headers = session.getHeaders();
+		if (!APPLICATION_JSON.equals(headers.get(CONTENT_TYPE))) {
+			return newFixedLengthResponse(Response.Status.NOT_ACCEPTABLE, MIME_PLAINTEXT, "Set content-type to application/json");
+		} else {
+			return null;
+		}
+	}
 
-    private final Set<FrameListener> listeners;
+	private void reset(IHTTPSession session) {
+		bot.reset();
+	}
 
-    private final Bot bot;
+	private Response select(IHTTPSession session) throws JsonProcessingException {
+		final Select s = bot.select();
+		LOGGER.info("Select was called. We returned " + s.getHero());
+		return buildJSONResponse(s);
+	}
 
-    public Dota2AIService( Bot bot ) throws IOException {
-        super( 8080 );
+	@Override
+	public Response serve(IHTTPSession session) {
+		// This method does a few sanity checks and then calls the respective
+		// method
+		// based on the requested URL. These methods then build the response
+		if (session.getMethod() != Method.POST) {
+			return newFixedLengthResponse(Response.Status.METHOD_NOT_ALLOWED, "text/plain", "Only POST allowed");
+		}
 
-        this.bot = bot;
+		final String method = session.getUri().substring(session.getUri().lastIndexOf('/') + 1).toLowerCase();
+		Response res;
 
-        listeners = new HashSet<>();
+		try {
+			switch (method) {
+			case "chat":
+				res = requireJSON(session);
+				if (res != null) {
+					break;
+				}
+				chat(session);
+				res = newFixedLengthResponse("");
+				break;
+			case "reset":
+				reset(session);
+				res = newFixedLengthResponse("");
+				break;
+			case "levelup":
+				res = levelup(session);
+				break;
+			case "select":
+				res = select(session);
+				break;
+			case "update":
+				res = requireJSON(session);
+				if (res != null) {
+					break;
+				}
+				res = update(session);
+				break;
+			default:
+				res = newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_PLAINTEXT, "method not found");
+				break;
 
-        LOGGER.fine( "Dota2AIService created" );
+			}
+		} catch (final Exception e) {
+			e.printStackTrace();
+			res = newFixedLengthResponse(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, e.getMessage());
+		}
+		return res;
+	}
 
-    }
-
-    public void add( FrameListener l ) {
-        listeners.add( l );
-    }
-
-    /**
-     * Ensures that the "accept" header is either set to JSON or empty
-     *
-     * @param session
-     * @return
-     */
-    private Response assureAcceptJSON( IHTTPSession session ) {
-        final Map<String, String> headers = session.getHeaders();
-        if (!APPLICATION_JSON.equals( headers.get( ACCEPT_FIELD ) )) {
-            return newFixedLengthResponse( Response.Status.NOT_ACCEPTABLE, MIME_PLAINTEXT, "set accept to application/json or remove it" );
-        }
-        else {
-            return null;
-        }
-    }
-
-    /**
-     * Helper method to serialize a POJO into JSON
-     *
-     * @param o
-     * @return
-     * @throws JsonProcessingException
-     */
-    private Response buildJSONResponse( Object o ) throws JsonProcessingException {
-        return newFixedLengthResponse( MAPPER.writeValueAsString( o ) );
-
-    }
-
-    private void chat( IHTTPSession session ) throws JsonParseException, JsonMappingException, IOException {
-        final ChatEvent e = MAPPER.readValue( session.getInputStream(), ChatEvent.class );
-        bot.onChat( e );
-    }
-
-    private Response levelup( IHTTPSession session ) throws JsonProcessingException {
-        final Response res = assureAcceptJSON( session );
-        if (res != null) {
-            return res;
-        }
-        final LevelUp l = bot.levelUp();
-        return buildJSONResponse( l );
-    }
-
-    /**
-     * Ensures that the supplied data has the "content-type" set to JSON
-     *
-     * @param session
-     * @return
-     */
-    private Response requireJSON( IHTTPSession session ) {
-        final Map<String, String> headers = session.getHeaders();
-        if (!APPLICATION_JSON.equals( headers.get( CONTENT_TYPE ) )) {
-            return newFixedLengthResponse( Response.Status.NOT_ACCEPTABLE, MIME_PLAINTEXT, "Set content-type to application/json" );
-        }
-        else {
-            return null;
-        }
-    }
-
-    private void reset( IHTTPSession session ) {
-        bot.reset();
-    }
-
-    private Response select( IHTTPSession session ) throws JsonProcessingException {
-        final Select s = bot.select();
-        LOGGER.info( "Select was called. We returned " + s.getHero() );
-        return buildJSONResponse( s );
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see fi.iki.elonen.NanoHTTPD#serve(fi.iki.elonen.NanoHTTPD.IHTTPSession)
-     */
-    @Override
-    public Response serve( IHTTPSession session ) {
-        // This method does a few sanity checks and then calls the respective
-        // method
-        // based on the requested URL. These methods then build the response
-        if (session.getMethod() != Method.POST) {
-            return newFixedLengthResponse( Response.Status.METHOD_NOT_ALLOWED, "text/plain", "Only POST allowed" );
-        }
-
-        final String method = session.getUri().substring( session.getUri().lastIndexOf( '/' ) + 1 ).toLowerCase();
-        Response res;
-
-        try {
-            switch (method) {
-                case "chat":
-                    res = requireJSON( session );
-                    if (res != null) {
-                        break;
-                    }
-                    chat( session );
-                    res = newFixedLengthResponse( "" );
-                    break;
-                case "reset":
-                    reset( session );
-                    res = newFixedLengthResponse( "" );
-                    break;
-                case "levelup":
-                    res = levelup( session );
-                    break;
-                case "select":
-                    res = select( session );
-                    break;
-                case "update":
-                    res = requireJSON( session );
-                    if (res != null) {
-                        break;
-                    }
-                    res = update( session );
-                    break;
-                default:
-                    res = newFixedLengthResponse( Response.Status.NOT_FOUND, MIME_PLAINTEXT, "method not found" );
-                    break;
-
-            }
-        }
-        catch (final Exception e) {
-            e.printStackTrace();
-            res = newFixedLengthResponse( Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, e.getMessage() );
-        }
-        return res;
-    }
-
-    private Response update( IHTTPSession session ) throws IOException {
-        final World world = MAPPER.readValue( session.getInputStream(), World.class );
-        listeners.stream().forEach( l -> l.update( world ) );
-        final Command c = bot.update( world );
-        return buildJSONResponse( c );
-    }
+	private Response update(IHTTPSession session) throws IOException {
+		final World world = MAPPER.readValue(session.getInputStream(), World.class);
+		listeners.stream().forEach(l -> l.update(world));
+		final Command c = bot.update(world);
+		return buildJSONResponse(c);
+	}
 }
