@@ -7,7 +7,7 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
     <groupId>loganrouleau.dota2ai</groupId>
-    <artifactId>Dota2Bot</artifactId>
+    <artifactId>OgreBot</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <build>
         <plugins>

@@ -6,7 +6,7 @@
         <artifactId>Dota2AI</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
-    <artifactId>Dota2Framework</artifactId>
+    <artifactId>Framework</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <dependencies>
         <dependency>

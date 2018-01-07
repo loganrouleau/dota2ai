@@ -24,7 +24,7 @@
         </plugins>
     </build>
     <modules>
-        <module>Dota2Bot</module>
-        <module>Dota2Framework</module>
+        <module>OgreBot</module>
+        <module>Framework</module>
     </modules>
 </project>

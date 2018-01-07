@@ -1,4 +1,4 @@
-package bots.lina;
+package bot;
 
 import java.util.Random;
 import java.util.Set;
@@ -15,7 +15,7 @@ import se.lu.lucs.dota2.framework.game.Hero;
 import se.lu.lucs.dota2.framework.game.Tower;
 import se.lu.lucs.dota2.framework.game.World;
 
-public class Lina extends BaseBot {
+public class Ogre extends BaseBot {
 	private enum Mode {
 		ENABLED, DISABLED
 	}
@@ -45,8 +45,8 @@ public class Lina extends BaseBot {
 	private boolean shouldBuyTango;
 	private boolean shouldSellTango;
 
-	public Lina() {
-		System.out.println("Creating Lina");
+	public Ogre() {
+		System.out.println("Creating Ogre");
 		myLevels = new int[5];
 
 	}
@@ -244,7 +244,7 @@ public class Lina extends BaseBot {
 
 	private Command retreat(World world) {
 		// Retreat at 30% health
-		System.out.println("Lina is retreating");
+		System.out.println("Ogre is retreating");
 		final BaseNPC fountain = (BaseNPC) world.getEntities().entrySet().stream()
 				.filter(p -> p.getValue().getName().equals("ent_dota_fountain_good")).findAny().get().getValue();
 		final float[] targetPos = fountain.getOrigin();

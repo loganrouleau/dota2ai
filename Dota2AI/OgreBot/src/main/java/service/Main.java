@@ -2,7 +2,7 @@ package service;
 
 import java.io.IOException;
 
-import bots.lina.Lina;
+import bot.Ogre;
 import fi.iki.elonen.NanoHTTPD;
 import se.lu.lucs.dota2.service.Dota2AIService;
 
@@ -18,7 +18,7 @@ public class Main {
 	}
 
 	private void run() throws ClassNotFoundException, InstantiationException, IllegalAccessException, IOException {
-		final Dota2AIService service = new Dota2AIService(new Lina());
+		final Dota2AIService service = new Dota2AIService(new Ogre());
 		service.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
 	}
 
