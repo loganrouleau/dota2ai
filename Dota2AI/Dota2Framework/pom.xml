@@ -6,7 +6,6 @@
         <artifactId>Dota2AI</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
-    <groupId>se.lu.lucs</groupId>
     <artifactId>Dota2Framework</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <dependencies>
