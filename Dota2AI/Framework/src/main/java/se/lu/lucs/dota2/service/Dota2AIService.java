@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fi.iki.elonen.NanoHTTPD;
 import se.lu.lucs.dota2.framework.bot.Bot;
 import se.lu.lucs.dota2.framework.bot.Bot.Command;
+import se.lu.lucs.dota2.framework.bot.BotCommands.Reset;
 import se.lu.lucs.dota2.framework.bot.BotCommands.LevelUp;
 import se.lu.lucs.dota2.framework.bot.BotCommands.Select;
 import se.lu.lucs.dota2.framework.game.ChatEvent;
@@ -109,15 +110,17 @@ public class Dota2AIService extends NanoHTTPD {
 		}
 	}
 
-	private void reset(IHTTPSession session) {
-		bot.reset();
-	}
-
 	private Response select(IHTTPSession session) throws JsonProcessingException {
 		final Select s = bot.select();
 		LOGGER.info("Select was called. We returned " + s.getHero());
 		return buildJSONResponse(s);
 	}
+
+    private Response reset(IHTTPSession session) throws JsonProcessingException {
+        final Reset r = bot.reset();
+        LOGGER.info("Reset was called");
+        return buildJSONResponse(r);
+    }
 
 	@Override
 	public Response serve(IHTTPSession session) {

@@ -201,6 +201,20 @@ public final class BotCommands {
 
     }
 
+    public static class Reset implements Command {
+        private COMMAND_CODE command = COMMAND_CODE.RESET;
+
+        @Override
+        public COMMAND_CODE getCommand() {
+            return command;
+        }
+
+        private void setCommand( COMMAND_CODE command ) {
+            this.command = command;
+        }
+
+    }
+
     public static class Sell implements Command {
         private COMMAND_CODE command = COMMAND_CODE.SELL;
         private int slot;
@@ -246,4 +260,5 @@ public final class BotCommands {
         }
 
     }
+
 }

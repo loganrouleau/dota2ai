@@ -3,6 +3,7 @@ package bot;
 import se.lu.lucs.dota2.framework.bot.BaseBot;
 import se.lu.lucs.dota2.framework.bot.BotCommands.LevelUp;
 import se.lu.lucs.dota2.framework.bot.BotCommands.Select;
+import se.lu.lucs.dota2.framework.bot.BotCommands.Reset;
 import se.lu.lucs.dota2.framework.game.*;
 
 import java.util.Random;
@@ -87,9 +88,10 @@ public class FullOgre extends BaseBot {
 	}
 
 	@Override
-	public void reset() {
+	public Reset reset() {
 		System.out.println("Resetting");
 		myLevels = new int[5];
+		return RESET;
 	}
 
 	@Override
