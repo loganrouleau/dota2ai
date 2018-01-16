@@ -1,5 +1,7 @@
 package bot;
 
+import qlearning.LookupTable;
+import qlearning.State;
 import se.lu.lucs.dota2.framework.bot.BaseBot;
 import se.lu.lucs.dota2.framework.bot.BotCommands.Reset;
 import se.lu.lucs.dota2.framework.bot.BotCommands.LevelUp;
@@ -17,10 +19,17 @@ public class Ogre extends BaseBot {
 	private Mode mode = Mode.DISABLED;
 	private boolean shouldMoveToCenter = false;
 	private boolean shouldReset = false;
-	private int positionTolerance = 25;
+	private int x;
+	private int y;
+	private int positionTolerance = 75;
+	private LookupTable lut;
+	private State currentState;
+	private State nextState = State.F;
+	private boolean moveInProgress;
 
 	public Ogre() {
-		System.out.println("Creating Ogre");
+	    System.out.println("Creating Ogre");
+	    lut =  new LookupTable();
 	}
 
 	@Override
@@ -83,19 +92,22 @@ public class Ogre extends BaseBot {
 			return NOOP;
 		}
 
-		final Hero lina = (Hero) world.getEntities().get(myIndex);
+		if (moveInProgress){
+		    return NOOP;
+        }
 
-		float[] location = lina.getOrigin();
-		int x = (int) location[0];
-		int y = (int) location[1];
-        int nearestX = Math.round(location[0]/500)*500;
-        int nearestY = Math.round(location[1]/500)*500;
-		System.out.format("Current coordinate {%d, %d}%n", x, y);
-        System.out.format("Closest coordinate {%d, %d}%n", nearestX, nearestY);
+		final Hero ogre = (Hero) world.getEntities().get(myIndex);
+
+		float[] location = ogre.getOrigin();
+		x = (int) location[0];
+		y = (int) location[1];
+
+        currentState = getState(x, y);
+        System.out.println("Current state: " + currentState);
 
 		if(shouldMoveToCenter){
-		    if(Math.abs(-500-x) > positionTolerance || Math.abs(-500-y) > positionTolerance){
-                return moveTo(-500, -500);
+		    if(Math.abs(-1000-x) > positionTolerance || Math.abs(-1000-y) > positionTolerance){
+                return moveTo(-1000, -1000);
             } else{
 		        shouldMoveToCenter = false;
 		        System.out.println("Arrived at center");
@@ -103,9 +115,29 @@ public class Ogre extends BaseBot {
             }
         }
 
-        System.out.println("Reached end of update. Not doing anything");
-        return NOOP;
+        if(arrivedAtGoalState()){
+		    moveInProgress = false;
+		    System.out.println("Arrive at state: " + nextState);
+        } else{
+            return NOOP;
+        }
+
+        if(Math.random() > 0.5){
+            System.out.println("Moving left");
+		    return moveLeft();
+        } else{
+            System.out.println("Moving right");
+            return moveRight();
+        }
 	}
+
+	private boolean arrivedAtGoalState(){
+        if(Math.abs(nextState.getX()-x) > positionTolerance || Math.abs(nextState.getY()-y) > positionTolerance){
+            return false;
+        } else{
+            return true;
+        }
+    }
 
 	private Command moveTo(int x, int y){
         MOVE.setX((float) x);
@@ -113,6 +145,51 @@ public class Ogre extends BaseBot {
         MOVE.setZ(0);
         System.out.format("Moving to coordinate {%d, %d}%n", x, y);
         return MOVE;
+    }
+
+    private Command moveLeft(){
+	    nextState = getState(x - 500, y + 500);
+
+	    if(nextState == null){
+	        System.out.println("Invalid next state");
+	        return NOOP;
+        }
+
+        moveInProgress = true;
+	    MOVE.setX((float) x - 500);
+	    MOVE.setY((float) y + 500);
+	    MOVE.setZ(0);
+	    System.out.format("Moving left");
+	    return MOVE;
+    }
+
+    private Command moveRight(){
+        nextState = getState(x + 500, y - 500);
+
+        if(nextState == null){
+            System.out.println("Invalid next state");
+            return NOOP;
+        }
+
+        moveInProgress = true;
+        MOVE.setX((float) x + 500);
+        MOVE.setY((float) y - 500);
+        MOVE.setZ(0);
+        System.out.format("Moving right");
+        return MOVE;
+    }
+
+    private State getState(int x, int y) {
+        int nearestX = Math.round(x / 500) * 500;
+        int nearestY = Math.round(y / 500) * 500;
+        //System.out.format("Current coordinate {%d, %d}%n", x, y);
+        //System.out.format("Closest coordinate {%d, %d}%n", nearestX, nearestY);
+        for (State state : State.values()) {
+            if (nearestX == state.getX() && nearestY == state.getY()) {
+                return state;
+            }
+        }
+        return null;
     }
 
 }
