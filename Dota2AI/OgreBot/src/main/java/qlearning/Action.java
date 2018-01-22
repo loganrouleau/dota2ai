@@ -1,19 +1,13 @@
 package qlearning;
 
-public enum Action {
-    LEFT(1),
-    RIGHT(2),
-    FORWARD(3),
-    BACK(4);
+import se.lu.lucs.dota2.framework.bot.Bot.Command;
 
-    private int hashedAction;
+public interface Action {
+    Command moveLeft();
 
-    Action(int hashedAction) {
-        this.hashedAction = hashedAction;
-    }
+    Command moveRight();
 
-    public int getHashedAction() {
-        return hashedAction;
-    }
+    Command moveForward();
 
+    Command moveBack();
 }

@@ -25,7 +25,7 @@ public class BaseNPC extends BaseEntity {
     protected Map<Integer, Ability> abilities;
 
     protected BaseNPC() {
-        origin = new float[3];
+        origin = new int[3];
     }
 
     public Map<Integer, Ability> getAbilities() {

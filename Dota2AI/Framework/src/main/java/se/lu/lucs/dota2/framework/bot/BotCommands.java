@@ -122,9 +122,9 @@ public final class BotCommands {
     }
 
     public static class Move implements Command {
-        private float x;
-        private float y;
-        private float z;
+        private int x;
+        private int y;
+        private int z;
 
         private COMMAND_CODE command = COMMAND_CODE.MOVE;
 
@@ -133,27 +133,34 @@ public final class BotCommands {
             return command;
         }
 
-        public float getX() {
+        public int getX() {
             return x;
         }
 
-        public float getY() {
+        public int getY() {
             return y;
         }
 
-        public float getZ() {
+        public int getZ() {
             return z;
         }
 
-        public void setX( float x ) {
+        public void setX( int x ) {
             this.x = x;
         }
 
-        public void setY( float y ) {
+        public void setY( int y ) {
             this.y = y;
         }
 
-        public void setZ( float z ) {
+        public void setXY( int x, int y){
+            double x2 = 0.7071*(x + y);
+            double y2 = 0.7071*(y - x);
+            this.x = (int) (x2 - 500);
+            this.y = (int) (y2 - 400);
+        }
+
+        public void setZ( int z ) {
             this.z = z;
         }
 

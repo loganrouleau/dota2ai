@@ -37,9 +37,9 @@ end
 	-- limited to player one for now
 	local heroEntity = PlayerResource:GetSelectedHeroEntity(0)
 	heroEntity:SetContextThink( "Dota2AI:BotThink", function() return Dota2AI:BotThink(heroEntity) end, 0.33 )
-	 
-	Say(nil, "Bot (team = " .. heroEntity:GetTeam()..", user=0 picked " .. heroEntity:GetName(), false)    
-		
+	Say(nil, "Bot (team = " .. heroEntity:GetTeam()..", user=0 picked " .. heroEntity:GetName(), false)
+    heroEntity:SetIdleAcquire(false)
+	heroEntity:SetAcquisitionRange(0)
  end
 
 
@@ -89,7 +89,7 @@ end
  -- Main function for a bot. Each tick, it makes a web call to determine if any web action should be taken
  -- The return value is the time in s when this function should be called again, and the function will
  -- halt and wait for the HTTP call to return. Thinking too long will prompt a warning in the game
- -- and should be sanytioned in the future
+ -- and should be sanctioned in the future
  --------------------------------------------------------------------------------
  function Dota2AI:BotThink(heroEntity)  
 	  if heroEntity:GetAbilityPoints() > 0 then

@@ -63,9 +63,11 @@ end
 	elseif command == "NOOP" then
 		self:Noop(eHero, result)
     elseif command == "RESET" then
-        require("addon_game_mode")
-        GameRules:ResetToHeroSelection()
-        Activate()
+        GameRules:Defeated()
+        GameRules:ResetDefeated()
+        --require("addon_game_mode")
+        --GameRules:ResetToHeroSelection()
+        --Activate()
 	else 
 		self._Error = true
 		Warning(eHero:GetName() .. " sent invalid command " .. reply)

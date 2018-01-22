@@ -6,6 +6,7 @@ import static qlearning.Action.*;
 
 public class LookupTable {
     private Map<Integer, Double> Lut = new TreeMap<>();
+    private static final double EPSILON = 0.15;
     private static final double LEARNING_RATE = 0.05;
     private static final double DISCOUNT_FACTOR = 0.9;
 
@@ -16,18 +17,14 @@ public class LookupTable {
     }
 
     private void initialize() {
-        for (State state : State.values()) {
+        /*for (State state : State.values()) {
             for (Action action : getPossibleActions(state)) {
                 Lut.put(getHashedActionState(state, action), 0.01 * Math.random());
             }
-        }
+        }*/
     }
 
-    private int getHashedActionState(State state, Action action){
-        return state.getHashedState() + action.getHashedAction();
-    }
-
-    private void update(State currentState, Action currentAction, double reward){
+/*    private void update(State currentState, Action currentAction, double reward){
         double currentQValue = lookup(currentState, currentAction);
         double maxNextQValue = -Double.MAX_VALUE;
 
@@ -37,46 +34,13 @@ public class LookupTable {
 
         Lut.put(getHashedActionState(currentState, currentAction),
                 (1 - LEARNING_RATE) * currentQValue + LEARNING_RATE * (reward + DISCOUNT_FACTOR * maxNextQValue));
-    }
+    }*/
 
+/*
     private double lookup(State state, Action action){
         return Lut.get(getHashedActionState(state, action));
     }
-
-    private List<Action> getPossibleActions(State state){
-        List<Action> possibleActions = new ArrayList<>();
-
-        switch (state){
-            case A:
-                possibleActions.add(RIGHT);
-                break;
-            case B:
-                possibleActions.add(LEFT);
-                possibleActions.add(RIGHT);
-                possibleActions.add(BACK);
-                break;
-            case C:
-                possibleActions.add(LEFT);
-                break;
-            case D:
-                possibleActions.add(FORWARD);
-                possibleActions.add(BACK);
-                break;
-            case E:
-                possibleActions.add(RIGHT);
-                break;
-            case F:
-                possibleActions.add(LEFT);
-                possibleActions.add(RIGHT);
-                possibleActions.add(FORWARD);
-                break;
-            case G:
-                possibleActions.add(LEFT);
-                break;
-        }
-
-        return possibleActions;
-    }
+*/
 
     public void printLut() {
         System.out.println("---------");

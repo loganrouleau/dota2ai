@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
                 @Type( name = "Building", value = Building.class ), @Type( name = "Tree", value = Tree.class ),
                 @Type( name = "Ability", value = Ability.class ) })
 public abstract class BaseEntity {
-    protected float[] origin;
+    protected int[] origin;
 
     protected String name;
     protected int health;
@@ -27,8 +27,8 @@ public abstract class BaseEntity {
         return name;
     }
 
-    public float[] getOrigin() {
-        return origin;
+    public int[] getOrigin() {
+        return transform(origin);
     }
 
     public void setHealth( int health ) {
@@ -43,8 +43,13 @@ public abstract class BaseEntity {
         this.name = name;
     }
 
-    public void setOrigin( float[] origin ) {
+    public void setOrigin( int[] origin ) {
         this.origin = origin;
     }
 
+    private int[] transform(int[] input){
+        double x = 0.7071*((input[0] + 500) - (input[1] + 400));
+        double y = 0.7071*((input[0] + 500) + (input[1] + 400));
+        return new int[]{(int) x,(int) y};
+    }
 }
