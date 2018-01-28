@@ -1,26 +1,23 @@
 package qlearning;
 
-public enum State {
-    A(10, -500, 500),
-    B(20, 0, 0),
-    C(30, 500, -500),
-    D(40, -500, -500),
-    E(50, -1500, -500),
-    F(60, -1000, -1000),
-    G(70, -500, -1500);
-
-    private int hashedState;
+public class State {
     private int x;
     private int y;
 
-    State(int hashedState, int x, int y) {
-        this.hashedState = hashedState;
-        this.x = x;
-        this.y = y;
+    public State() {
     }
 
-    public int getHashedState() {
-        return hashedState;
+    public State(int x, int y) {
+        this.setX(x);
+        this.setY(y);
+    }
+
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    public void setY(int y) {
+        this.y = y;
     }
 
     public int getX() {

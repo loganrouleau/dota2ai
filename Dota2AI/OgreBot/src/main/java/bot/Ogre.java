@@ -2,6 +2,7 @@ package bot;
 
 import qlearning.Action;
 import qlearning.LookupTable;
+import qlearning.State;
 import se.lu.lucs.dota2.framework.bot.BaseBot;
 import se.lu.lucs.dota2.framework.bot.BotCommands.Reset;
 import se.lu.lucs.dota2.framework.bot.BotCommands.LevelUp;
@@ -12,9 +13,7 @@ import se.lu.lucs.dota2.framework.game.World;
 
 public class Ogre extends BaseBot implements Action {
 
-    private enum Mode {
-		ENABLED, DISABLED
-	}
+    private enum Mode {	ENABLED, DISABLED };
 
 	private static final String MY_HERO_NAME = "npc_dota_hero_ogre_magi";
 	private Mode mode = Mode.ENABLED;
@@ -24,12 +23,16 @@ public class Ogre extends BaseBot implements Action {
 	private int y;
 	private int targetX;
 	private int targetY;
+	private int nearestX;
+	private int nearestY;
 	private int positionTolerance = 75;
 	private LookupTable lut;
+    private State currentState;
 
 	public Ogre() {
 	    System.out.println("Creating Ogre");
-	    lut =  new LookupTable();
+	    lut = new LookupTable();
+	    currentState = new State();
 	}
 
 	@Override
@@ -51,12 +54,16 @@ public class Ogre extends BaseBot implements Action {
                 mode = Mode.DISABLED;
                 shouldReset = true;
                 break;
-            case "move center":
+            case "train":
                 if (mode == Mode.DISABLED) {
                     System.out.println("Mode must be enabled to issue a command");
                 } else {
-                    shouldMoveToCenter = true;
+                    shouldMoveToCenter = false;
                 }
+                break;
+            case "save":
+                System.out.println("Saving lut");
+                lut.writeLut();
                 break;
         }
     }
@@ -98,33 +105,64 @@ public class Ogre extends BaseBot implements Action {
 		x = location[0];
 		y = location[1];
 
-        getState(x, y);
+        updateState(x, y);
 
         System.out.println("Target x, y : " + targetX + ", " + targetY);
+
+        if (shouldMoveToCenter) {
+            System.out.println("Moving to center");
+            return moveTo(0, 0);
+        }
+
+        if (x < -1000){
+            System.out.println("Out of bounds");
+            return moveTo(-500, nearestY);
+        }
+
+        if (x > 1000){
+            System.out.println("Out of bounds");
+            return moveTo(500, nearestY);
+        }
+
+        if (y < -1000){
+            System.out.println("Out of bounds");
+            return moveTo(nearestX, -500);
+        }
+
+        if (y > 1000){
+            System.out.println("Out of bounds");
+            return moveTo(nearestX, 500);
+        }
 
         if (moveInProgress()) {
             System.out.println("Move not complete");
             return moveTo(targetX, targetY);
         }
 
-        if (shouldMoveToCenter) {
-            System.out.println("Moving to center");
-            shouldMoveToCenter = false;
-            return moveTo(0, 0);
+        Actions nextAction = lut.findAction(currentState);
+        switch (nextAction) {
+            case LEFT:
+                return moveLeft();
+            case RIGHT:
+                return moveRight();
+            case FORWARD:
+                return moveForward();
+            case BACK:
+                return moveBack();
+            default:
+                System.out.println("Error! lut.findAction did not give a proper result!");
+                return NOOP;
         }
 
-        if (Math.random() > 0.5) {
-            return moveLeft();
-        } else {
-            return moveRight();
-        }
     }
 
-    private void getState(int x, int y) {
-        int nearestX = (int) Math.round((double) x / 500) * 500;
-        int nearestY = (int) Math.round((double) y / 500) * 500;
+    private void updateState(int x, int y) {
+        nearestX = (int) Math.round((double) x / 500) * 500;
+        nearestY = (int) Math.round((double) y / 500) * 500;
         System.out.format("Current coordinate {%d, %d}%n", x, y);
         System.out.format("Closest coordinate {%d, %d}%n", nearestX, nearestY);
+        currentState.setX(nearestX);
+        currentState.setY(nearestY);
     }
 
 	private Command moveTo(int x, int y){
